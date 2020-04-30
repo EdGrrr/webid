@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Shiptrack</title>
+        <strong><link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"></strong>
+        <link rel="icon" href="data:;base64,=">
+        <script src="{{ url_for('static',  filename='javascript/jquery-3.3.1.min.js') }}"></script>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <h1 class="logo">{% block title %}{% endblock %}</h1>
+            </div>
+        </header>
+
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>
