@@ -2,141 +2,74 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            * {box-sizing: border-box;}
-            .img-comp-container {
-                position: relative;
-                height: {{ height }} px; /*should be the same height as the images*/
-            }
-            .img-comp-img {
-                position: absolute;
-                width: auto;
-                height: auto;
-                overflow:hidden;
-                z-index:-1;
-            }
-            .img-comp-img img {
-                display:block;
-                vertical-align:middle;
-                z-index:-1;
-            }
-            .img-comp-slider {
-                position: absolute;
-                z-index:9;
-                cursor: ew-resize;
-                /*set the appearance of the slider:*/
-                width: 40px;
-                height: 40px;
-                background-color: #2196F3;
-                opacity: 0.7;
-                border-radius: 50%;
-            }
-         #shipSVG{
-             z-index:20;
-             position: absolute;
-             left: 0px;
-             top: 0px;
+         .img-comp-container {
+            position: relative;
+            height: {{ height }}px;
          }
-         #trackCanvas{
-             z-index:15;
-
+         .img-comp-img{
+             position: absolute;
+             z-index: 10;
+         }
+         #myCanvas{
+             position: relative;
+             z-index:20;
          }
         </style>
-        <script src="{{ url_for('static',  filename='javascript/jquery-3.3.1.min.js') }}"></script>
-        <script src="{{ url_for('static',  filename='javascript/draw_coords.js') }}"></script>
-        <script src="{{ url_for('static',  filename='javascript/track_register.js') }}"></script>
     </head>
-    <body>
+    <body onload="InitThis();">
+        <script>
+         function drawImage() {
+             var image = new Image();
+             image.src = "{{ url_for('static', filename=mask_name) }}";
+             $(image).load(function () {
+                 ctx.drawImage(image, 0, 0, {{width}}, {{height}});
+                 cPush();
+             });    
+         };
+         </script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+        <script type="text/javascript" src={{ url_for('static', filename="JsCode.js") }}></script>
+
         <div id="satImg" class="img-comp-container">
-            <div id='imgCont' class="img-comp-img img-comp-overlay">
-                <img id='imgDMP' src="{{ url_for('static',  filename=img_dmp) }}" width="{{ width }}" height="{{ height }}"
-                     data-srccom="{{ url_for('static',  filename=img_dmp)}}"
-                     data-srcrgb="{{ url_for('static',  filename=img_rgb)}}"
-                     data-srccdnc="{{ url_for('static',  filename=img_cdnc)}}">
+            <div id='imgCont' class="img-comp-img">
+                <img id='imgDMP'
+                     src={{ url_for('static', filename=img_rgb) }}
+                     width="{{ width }}" height="{{ height }}">
             </div>
-            <canvas id="trackCanvas" width="{{ width }}" height="{{ height }}"></canvas>
-            <svg id="shipSVG" width="{{ width }}" height="{{ height }}">
-                {% for ship in slocs %}
-                    <path class="shipLine" d="{{ship[1]}}"
-                          fill="none" stroke-width="2" stroke="black"/>
-                    
-                    {% for point in ship[0] %}
-                        <circle class="shipPoint" cx="{{ point[0] }}" cy="{{ point[1] }}"
-                                r="4" stroke="black" stroke-width="1" fill="red"
-                                data-imo="{{ point[2] }}"/>
-                    {% endfor %}
-                    
-                    <circle class="shipPoint" cx="{{ ship[0][-1][0] }}" cy="{{ ship[0][-1][1] }}"
-                            r="4" stroke="black" stroke-width="1" fill="black"
-                            data-imo="{{ ship[0][-1][2] }}"/>
-                {% endfor %}
-                {% for esttrack in etlocs %}
-                    <path class="shipLine" d="{{esttrack[1]}}"
-                          fill="none" stroke-width="1" stroke="black"/>
-                {% endfor %}
-            </svg>
-
+            <canvas id="myCanvas" width="{{ width }}" height="{{ height }}"></canvas>
+        </div>
+        
+        <div id='drawOptions'>
+            Line width : <select id="selWidth">
+                <option value="1">1</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="7">7</option>
+                <option value="9" selected="selected">9</option>
+                <option value="11">11</option>
+            </select>
+            <button onclick="javascript:cUndo();return false;">Undo</button>w
+            <button onclick="javascript:cRedo();return false;">Redo</button>
+            <button onclick="javascript:saveImage();return false;">Save Mask</button>
+            <button onclick="javascript:$('#myCanvas').toggle();return false;">Toggle Mask</button>
         </div>
 
-        <div id='trackOptions'>
-            <input id="submitTrackBtn" type="button" value="Submit Track (q)" data-granule="{{ granule_name }}" data-exp="{{ exp }}"/>
-            <label id="trackLengthLbl">Length: ---</label>
-            <input id="clearTrackBtn" type="button" value="Clear Track (c)"/>
-            <input id="shipSelectBtn" type="button" value="Ship Select"/>
-            <label for="shipSelectBtn" id="imo">ID: ---</label>
-            <span id="ttype">Type: --</span>
-        </div>
-            
-        <div id='granuleOptions'>
-            <label for="granuleCheck">Checked</label>
-            <input id="granuleCheck" type="checkbox" checked>
+        <div id='imageOptions' data-image="{{image_name}}">
+            <label for="imageCheck">Checked</label>
+            <input id="imageCheck" type="checkbox" checked>
 
-            <label for="granuleNotes">Notes: </label>
-            <input id="granuleNotes" type="text" placeholder="{{ granule_notes }}">
+            <label for="imageNotes">Notes: </label>
+            <input id="imageNotes" type="text" placeholder="{{ image_notes }}">
 
-            <input id="granuleCompleteBtn" type="button" value="Granule Complete" data-granule="{{ granule_name }}" data-exp="{{ exp }}"/>
+            <input id="imageCompleteBtn" type="button" value="Image Complete" data-image="{{ image_name }}" data-exp="{{ exp }}"/>
 
-            <a href="{{ url_for('granule', res=res, granule_name=next_granule, exp=exp) }}">Next granule</a>
+            <a href="{{ url_for('image', res=res, image_name=next_image, exp=exp) }}">Next image</a>
 
             <a href="{{ url_for('exp', exp=exp) }}">Experiment Index</a>
         </div>
 
-        <div id='imgOptions'>
-            <input id="toggleBtn" type="button" value="Toggle Ships (a)"/>
-            <input id="toggleIMG" type="button" value="Toggle Image (s)"/>
-            <input id="toggleCDNC" type="button" value="Toggle CDNC (d)"/>
-        </div>
-        
         <script>
-         $('#granuleNotes').val('{{ granule_notes}}');
-         var ctxl = $("#trackCanvas")[0].getContext("2d");
-         /* Draw the tracks onto the canvas*/
-         {% for track in tlocs %}
-         {% for point in track %}
-         drawCoordinates(ctxl, {{ point[0]}}, {{ height }} - {{ point[1]}});
-         {% endfor %}
-         {% endfor %}
-
-         $(document).keypress(function(e) {
-             if (!$('#granuleNotes').is(':focus')) {
-                 if(e.which == 113) {
-                     $('#submitTrackBtn').trigger('click');
-                 } else if(e.which == 115) {
-                     $('#toggleIMG').trigger('click');
-                 } else if(e.which == 99) {
-                     $('#clearTrackBtn').trigger('click');
-                 } else if(e.which == 100) {
-                     $('#toggleCDNC').trigger('click');
-                 } else if(e.which == 97) {
-                     $('#toggleBtn').trigger('click');
-                 } else if(e.which == 119) {
-                     $('#shipSelectBtn').trigger('click');
-                 } else if((e.which >= 48)&&(e.which <= 52)) {
-                     window.track_ttype = e.which-48;
-                     $('#ttype').innerHTML = 'Ttype: '+window.track_ttype;
-                 }
-             };
-         });
-          
+            $('#imageNotes').val('{{ image_notes}}');
         </script>
 
     </body>

@@ -5,6 +5,7 @@ import re
 import pdb
 import code
 import base64
+import json
 from util import imagedb
 #pdb.set_trace()
 
@@ -54,21 +55,57 @@ for exp in tasic_cfg.keys():
         tasic_cfg[exp]['image_list'] = DataIndex([a[1] for a in tasic_cfg[exp]['gran_db'].dump()], 'None')
         tasic_cfg[exp]['tr_list'] = DataIndex(missing=-1)
 
-
-
-@app.route('/submit_mask', methods=['POST'])
-#@cross_origin()
-def submit_mask():
+@app.route('/submit_mask/<image_name>', methods=['POST'])
+def submit_mask(image_name):
     if request.method == 'POST':
         data = request.form['img64']
-        #print(data)
         image_data = base64.b64decode(re.sub('^data:image/.+;base64,', '', data))
-        with open('test.png', 'wb') as f:
+        mask_name = imagedb.get_maskname('static/'+tasic_cfg[exp]['folder']+'/'+image_name)
+        #Todo here - apply a threshold to the mask
+        with open(mask_name, 'wb') as f:
             f.write(image_data)
-        return 
+        return redirect(url_for('index'), code=303)
     else:
         print('Requires POST')
-        
+
+@app.route('/exp/<exp>/image_complete/<image_name>', methods=['POST'])
+def image_complete(image_name=None, exp=None):
+    image_data = json.loads(request.form['image_data'])
+    image_update = {
+        'checked': image_data['checked'],
+        'notes': image_data['notes'],
+        'percentage_mask': imagedb.mask_percentage('static/'+tasic_cfg[exp]['folder']+'/'+image_name)
+    }
+    print(image_name)
+    tasic_cfg[exp]['image_db'].update(image_name,
+                                      image_update)
+    new_data = tasic_cfg[exp]['image_db'].check(image_name)
+    print('Image: {} Tracks: {} Notes: {}'.format(
+        image_name, new_data['percentage_mask'], new_data['notes']))
+    return redirect(url_for('index'), code=303)
+
+
+@app.route('/exp/<exp>/image/<res>/<image_name>')
+def image(image_name=None, res='hr', exp=exp):
+    if (not image_name) or (image_name == 'None'):
+        return redirect(url_for('exp', exp=exp))
+    image_notes = tasic_cfg[exp]['image_db'].check(image_name)['notes']
+
+    if res == 'hr':
+        img_rgb = '{folder}{image_name}'.format(
+            folder=tasic_cfg[exp]['folder'],
+            image_name=image_name)
+        width, height, scale = 2030, 1350, 1
+
+        return render_template('image.html',
+                               img_rgb=img_rgb,
+                               width=width, height=height,
+                               exp=exp,
+                               image_name=image_name,
+                               mask_name=imagedb.get_maskname(img_rgb),
+                               image_notes=image_notes, res=res,
+                               next_image=tasic_cfg[exp]['image_list'].next())
+
 @app.route('/')
 @app.route('/index')
 def index():
