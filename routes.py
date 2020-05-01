@@ -113,7 +113,7 @@ def index():
     return render_template('index.html', data=cfinfo)
 
 @app.route('/exp/<exp>')
-def exp(exp=exp):
+def exp_info(exp=exp):
     '''Provide a single page with links to all the granules
     and track statistics for each'''
     print(exp)
@@ -122,7 +122,7 @@ def exp(exp=exp):
     return render_template('exp.html', exp=exp, data=granules)
 
 @app.route('/exp/<exp>-unchecked')
-def unchkexp(exp=exp):
+def unchkexp_info(exp=exp):
     '''Provide a single page with links to all the granules
     and track statistics for each'''
     print(exp)

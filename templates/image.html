@@ -41,14 +41,14 @@
         
         <div id='drawOptions'>
             Line width : <select id="selWidth">
-                <option value="1">1</option>
+                <option value="1" selected="selected">1</option>
+                <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="5">5</option>
-                <option value="7">7</option>
-                <option value="9" selected="selected">9</option>
-                <option value="11">11</option>
+                <option value="9">9</option>
+                <option value="15">15</option>
             </select>
-            <button onclick="javascript:cUndo();return false;">Undo</button>w
+            <button onclick="javascript:cUndo();return false;">Undo</button>
             <button onclick="javascript:cRedo();return false;">Redo</button>
             <button onclick="javascript:saveImage();return false;">Save Mask</button>
             <button onclick="javascript:$('#myCanvas').toggle();return false;">Toggle Mask</button>
@@ -65,7 +65,7 @@
 
             <a href="{{ url_for('image', res=res, image_name=next_image, exp=exp) }}">Next image</a>
 
-            <a href="{{ url_for('exp', exp=exp) }}">Experiment Index</a>
+            <a href="{{ url_for('exp_info', exp=exp) }}">Experiment Index</a>
         </div>
 
         <script>

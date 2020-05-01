@@ -54,7 +54,8 @@ function InitThis() {
 
 
     $('#imageCompleteBtn').click(function (e) {
-        console.log($(this).data("image"))
+        //console.log($(this).data("image"))
+        saveImage();
         var experiment = $(this).data("exp")
         var image_name = $(this).data("image");
         var image_notes = $('#imageNotes').val();
