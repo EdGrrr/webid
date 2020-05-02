@@ -11,8 +11,12 @@
              z-index: 10;
          }
          #myCanvas{
-             position: relative;
+             position: absolute;
              z-index:20;
+         }
+         #guideLayer{
+             position: absolute;
+             z-index:21;
          }
         </style>
     </head>
@@ -37,6 +41,7 @@
                      width="{{ width }}" height="{{ height }}">
             </div>
             <canvas id="myCanvas" width="{{ width }}" height="{{ height }}"></canvas>
+            <svg id="guideLayer" width="{{ width }}" height="{{ height }}"></svg>
         </div>
         
         <div id='drawOptions'>

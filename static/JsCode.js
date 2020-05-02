@@ -14,36 +14,44 @@ function InitThis() {
         toggleErase();
     });
     
-    $('#myCanvas').mousedown(function (e) {
+    $('#satImg').mousedown(function (e) {
         mousePressed = true;
         eraseX1 = e.pageX- $(this).offset().left;
         eraseY1 = e.pageY- $(this).offset().top;
-        Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, false);
+        Draw(eraseX1, eraseY1, false);
+
+        if (drawState=='line') {
+            DrawLine(eraseX1, eraseY1, false);
+        }
     });
 
-    $('#myCanvas').mousemove(function (e) {
+    $('#satImg').mousemove(function (e) {
         if (mousePressed) {
             eraseX2 = e.pageX- $(this).offset().left;
             eraseY2 = e.pageY- $(this).offset().top;
             if (drawState=='paint') {
-                Draw(eraseX2, eraseX1, true);
+                Draw(eraseX2, eraseY2, true);
+            }
+            if (drawState=='line') {
+                DrawLine(eraseX2, eraseY2, true);
             }
         }
     });
 
-    $('#myCanvas').mouseup(function (e) {
+    $('#satImg').mouseup(function (e) {
         if (mousePressed) {
             mousePressed = false;
             if (drawState=='erase') {
                 erase();
             } else if (drawState=='line') {
                 Draw(eraseX2, eraseY2, true);
+                RemoveLine();
             }
             cPush();
         }
     });
 
-    $('#myCanvas').mouseleave(function (e) {
+    $('#satImg').mouseleave(function (e) {
         if (mousePressed) {
             mousePressed = false;
             cPush();
@@ -92,6 +100,33 @@ function toggleErase() {
     }
 }
 
+function DrawLine(x, y) {
+    var tempLine = document.getElementById('templine');
+    if (tempLine) {
+        console.log('Shift line');
+        tempLine.setAttribute('x2', x)
+        tempLine.setAttribute('y2', y)
+    } else {
+        console.log('Create line');
+        var tempLine = document.createElementNS('http://www.w3.org/2000/svg','line');
+        tempLine.setAttribute('id','templine');
+        tempLine.setAttribute('x1',x);
+        tempLine.setAttribute('y1',y);
+        tempLine.setAttribute('x2',x);
+        tempLine.setAttribute('y2',y);
+        tempLine.setAttribute("stroke", "green")
+        console.log(tempLine);
+        $("#guideLayer").append(tempLine);
+    }
+}
+
+function RemoveLine() {
+    var tempLine = document.getElementById('templine');
+    if (tempLine) {
+        templine.remove()
+    }
+}
+    
 function Draw(x, y, isDown) {
     if (isDown) {
         if ((drawState=='paint')|(drawState=='line')) {
