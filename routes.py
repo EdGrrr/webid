@@ -62,6 +62,7 @@ def submit_mask(image_name):
         image_data = base64.b64decode(re.sub('^data:image/.+;base64,', '', data))
         mask_name = imagedb.get_maskname('static/'+tasic_cfg[exp]['folder']+'/'+image_name)
         #Todo here - apply a threshold to the mask
+        #Sort out transparency and red not lining up
         with open(mask_name, 'wb') as f:
             f.write(image_data)
         return redirect(url_for('index'), code=303)
