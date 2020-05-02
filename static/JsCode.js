@@ -4,20 +4,14 @@ var lastX, lastY;
 var ctx;
 var eraseX1, eraseY1, eraseX2, eraseY2;
 var isErasing = false;
-var lineDrawing = false;
-var lineX = -1;
-var lineY = -1;
+var drawState = 'paint'; //states: paint, erase, line, polygon
+var lastState = 'paint';
 
 function InitThis() {
     ctx = document.getElementById('myCanvas').getContext("2d");
 
     $('#erasingButton').mousedown(function (e) {
         toggleErase();
-        if (isErasing) {
-            $(this).html('Erasing');
-        } else {
-            $(this).html('Erase');
-        }
     });
     
     $('#myCanvas').mousedown(function (e) {
@@ -31,15 +25,19 @@ function InitThis() {
         if (mousePressed) {
             eraseX2 = e.pageX- $(this).offset().left;
             eraseY2 = e.pageY- $(this).offset().top;
-            Draw(e.pageX - $(this).offset().left, e.pageY - $(this).offset().top, true);
+            if (drawState=='paint') {
+                Draw(eraseX2, eraseX1, true);
+            }
         }
     });
 
     $('#myCanvas').mouseup(function (e) {
         if (mousePressed) {
             mousePressed = false;
-            if (isErasing) {
+            if (drawState=='erase') {
                 erase();
+            } else if (drawState=='line') {
+                Draw(eraseX2, eraseY2, true);
             }
             cPush();
         }
@@ -86,12 +84,17 @@ function erase() {
 }
 
 function toggleErase() {
-    isErasing = !isErasing;
+    if (drawState != 'erase') {
+        lastState = drawState;
+        drawState = 'erase';
+    } else {
+        drawState = lastState;
+    }
 }
 
 function Draw(x, y, isDown) {
     if (isDown) {
-        if (!isErasing){
+        if ((drawState=='paint')|(drawState=='line')) {
             ctx.beginPath();
             ctx.imageSmoothingEnabled = false;
             ctx.strokeStyle = 'red';
@@ -146,10 +149,6 @@ function saveImage() {
         data: {'img64': dataURL},
     }).done(function(o) {
         console.log('saved'); 
-        // If you want the file to be visible in the browser 
-        // - please modify the callback in javascript. All you
-        // need is to return the url to the file, you just saved 
-        // and than put the image in your browser.
     });
 }
 
@@ -161,14 +160,21 @@ function saveImage() {
 // p - polgon drawing mode
 $(document).keypress(function (e) {
     console.log(e.which);
-    if(e.which == 100 ) {
+    if(e.which == 101 ) {
+        //e - toggle erase box
         toggleErase();
-        console.log(isErasing);
+        console.log(drawState);
     } else if (e.which == 116 ) {
+        //t - toggle mask visibility
         $('#myCanvas').toggle();
     } else if (e.which == 108) {
-        lineDrawing = !lineDrawing;
-        lineX = -1;
-        lineY = -1;
+        //l - set line drawing mode
+        drawState = 'line';
+    } else if (e.which == 100) {
+        //d - set draw drawing mode
+        drawState = 'paint';
+    } else if (e.which == 112) {
+        //p - set polygon drawing mode
+        drawState = 'polygon';
     }
 });
