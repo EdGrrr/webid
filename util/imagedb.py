@@ -84,7 +84,7 @@ class ImageDatabase:
             VALUES (?,?,?,?,?,?)""",
                                  [image_name,
                                   info.get('checked', False),
-                                  info.get('number_ships', -1),
+                                  info.get('number_overlay', -1),
                                   info.get('number_tracks', -1),
                                   100*info.get('percentage_mask', -1),
                                   info.get('notes', '')])
