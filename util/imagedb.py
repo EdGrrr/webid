@@ -32,7 +32,7 @@ def mask_percentage(image_name):
 
 def mask_create_blank(image_name):
     with Image.open(image_name) as img:
-        maskdata = np.zeros((img.size[0], img.size[1], 4)).astype('uint8')
+        maskdata = np.zeros((img.size[1], img.size[0], 4)).astype('uint8')
     imgmask = Image.fromarray(maskdata)
     imgmask.save(get_maskname(image_name))
         

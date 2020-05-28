@@ -1,13 +1,10 @@
 from flask import Flask, request, render_template, redirect, url_for, make_response
-from flask_cors import CORS, cross_origin
-from werkzeug import FileStorage
 import re
 import pdb
 import code
 import base64
 import json
 from util import imagedb
-#pdb.set_trace()
 
 class DataIndex(object):
     '''Stores a list and the position in it'''
@@ -39,13 +36,12 @@ def get_info(tasic_cfg):
 
 tasic_cfg = {'contrails': {'folder': 'contrail_masks/',
                            'composite': 'CON',
-                           'type': 'region'},}
+                           'type': 'mask'},}
 
-app = Flask(__name__)                                                                                   #app.config['SERVER_NAME'] = 'localhost:8000'
-CORS(app)
+app = Flask(__name__)
 
 for exp in tasic_cfg.keys():
-    if tasic_cfg[exp]['type'] == 'region':
+    if tasic_cfg[exp]['type'] == 'mask':
         tasic_cfg[exp]['image_db'] = imagedb.ImageDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'images.db')
         tasic_cfg[exp]['image_list'] = DataIndex([a[1] for a in tasic_cfg[exp]['image_db'].dump()], 'None')
         tasic_cfg[exp]['item_list'] = DataIndex(missing=-1)
@@ -57,6 +53,7 @@ for exp in tasic_cfg.keys():
 
 @app.route('/submit_mask/<image_name>', methods=['POST'])
 def submit_mask(image_name):
+    '''Save the mask to the server. Done without updating the database as a temporary thing'''
     if request.method == 'POST':
         data = request.form['img64']
         image_data = base64.b64decode(re.sub('^data:image/.+;base64,', '', data))
@@ -71,6 +68,7 @@ def submit_mask(image_name):
 
 @app.route('/exp/<exp>/image_complete/<image_name>', methods=['POST'])
 def image_complete(image_name=None, exp=None):
+    '''Store the results from the image in the database'''
     image_data = json.loads(request.form['image_data'])
     image_update = {
         'checked': image_data['checked'],
@@ -88,6 +86,7 @@ def image_complete(image_name=None, exp=None):
 
 @app.route('/exp/<exp>/image/<res>/<image_name>')
 def image(image_name=None, res='hr', exp=exp):
+    '''Display an image'''
     if (not image_name) or (image_name == 'None'):
         return redirect(url_for('exp', exp=exp))
     image_notes = tasic_cfg[exp]['image_db'].check(image_name)['notes']
@@ -110,6 +109,7 @@ def image(image_name=None, res='hr', exp=exp):
 @app.route('/')
 @app.route('/index')
 def index():
+    '''A starting page with list of all the experiments'''
     cfinfo = get_info(tasic_cfg)
     return render_template('index.html', data=cfinfo)
 
@@ -131,9 +131,6 @@ def unchkexp_info(exp=exp):
     granules = [g for g in granules if g[2] == 0]
     tasic_cfg[exp]['image_list'].replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
-
-# def test():
-#     return render_template('test.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
