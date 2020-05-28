@@ -12,21 +12,42 @@ There are two method for marking out features:
 Thanks to Charles Harvey and Michael Richardson for their contributions.
 
 
-Usage
-#####
+General usage
+#############
 
 Create a conda environment using the environment.yml file. Alternatively, make sure you have the main requirements installed:
 - flask
 - numpy
 - pillow (PIL)
 
+Create some experiments (see below), then start the server (on localhost) by running 'make' in the project root directory. The webpage should then be at 'localhost:8000/index'.
 
-Mask-identifier
-***************
+For each experiment on the index page, there are two links. Clicking on the number of images will take you to a list of all available images. Clicking on the number in the 'checked' column will take you to a list of only the unchecked images. When going through the list of images, this should be the list of images used by the server.
 
-Once you have created a set of images, place them in a folder in the 'static' directory. If using an mask-based identifier, run 'util/create_mask_imagedb.py' from within the directory containing the images, where the following arguments are the names of the files to add to the database. This will create blank masks for images that don't already have them.
 
-Add the project details to tasic_cfg in 'routes.py'. Note that you can have many different projects in a single identifier setup.
+Mask identifier
+###############
+
+Setup
+*****
+
+Once you have created a set of images, place them in a folder in the 'static' directory. If using an mask-based identifier, run 'util/create_mask_imagedb.py' from within the directory containing the images, where the following arguments are the names of the files to add to the database. This will create blank masks for images that don't already have them. A single folder of images is known as an 'experiment'.
+
+Note that this script can be run in the future to add new images to a database without overwriting the results for previous images. You can try this in the example folder 'contrail_masks'. The current images.db does not include all of the images yet. These lines will add the new image.
+
+``cd static/contrail_masks``
+``python ../../util/create_mask_imagedb.py *.v1.png``
+
+Add the experiment details to tasic_cfg in 'routes.py'. Note that you can have many different experiments in a single identifier setup. All that is required here is the location of the experiment folder and the name of the experiment.
+
+Workflow (mask-mode)
+********************
+
+Enter the experiment (using either of the links in the index) and then click on a file. Use the mouse to draw out your mask, along with the line drawing function and erase function as necessary. The 'undo' and 'redo' function are unreliable, so use the 'save mask' button to save your progress.
+
+When you have finished, use the 'Image Complete' button to record your mask information in the database. Note that you can add a note with the image and also mark it as unchecked (useful if you want to move on but may need to come back to this image later).
+
+The 'Next Image' link takes you to the next image in the experiment, or back to the experiment info page if you have finished all the images.
 
 Keyboard shortcuts (mask mode)
 ******************************
@@ -44,6 +65,6 @@ Within the identifier screen for each image, there are some keyboard shortcuts t
 Object identifier
 *****************
 
-Not yet copied over from old code 
+Not yet copied over from old code...
 
 
