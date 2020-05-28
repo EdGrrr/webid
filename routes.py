@@ -5,6 +5,7 @@ import code
 import base64
 import json
 from util import imagedb
+from PIL import Image
 
 class DataIndex(object):
     '''Stores a list and the position in it'''
@@ -88,15 +89,17 @@ def image_complete(image_name=None, exp=None):
 def image(image_name=None, res='hr', exp=exp):
     '''Display an image'''
     if (not image_name) or (image_name == 'None'):
-        return redirect(url_for('exp', exp=exp))
+        return redirect(url_for('exp_info', exp=exp))
     image_notes = tasic_cfg[exp]['image_db'].check(image_name)['notes']
 
     if res == 'hr':
         img_rgb = '{folder}{image_name}'.format(
             folder=tasic_cfg[exp]['folder'],
             image_name=image_name)
-        width, height, scale = 2030, 1350, 1
-
+        with Image.open('static/'+img_rgb) as img:
+            width, height = img.size[0], img.size[1]
+        scale = 1 # Image scaling, not used here
+        
         return render_template('image.html',
                                img_rgb=img_rgb,
                                width=width, height=height,
