@@ -13,10 +13,11 @@ for img in images:
     maskname = get_maskname(img)
     if os.path.exists(maskname):
         mask_percent = mask_percentage(img)
+        print(mask_percent)
     else:
         mask_create_blank(img)
         mask_percent = 0
-    imgdb.update(img, {'percentage_mask': int(mask_percent)})
+    imgdb.update(img, {'percentage_mask': mask_percent})
 
 print('Database creation complete')
 print('''
@@ -24,4 +25,4 @@ Images:         {}
 Checked:        {}
 Total overlays: {}
 Total tracks:   {}
-With masks:     {}'''.format(*imgdb.info()))
+Percent masks:  {}'''.format(*imgdb.info()))
