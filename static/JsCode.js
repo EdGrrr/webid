@@ -106,6 +106,7 @@ function DrawLine(x, y) {
         console.log('Shift line');
         tempLine.setAttribute('x2', x)
         tempLine.setAttribute('y2', y)
+        templine.setAttribute("stroke-width", $('#selWidth').val());
     } else {
         console.log('Create line');
         var tempLine = document.createElementNS('http://www.w3.org/2000/svg','line');
@@ -211,5 +212,14 @@ $(document).keypress(function (e) {
     } else if (e.which == 112) {
         //p - set polygon drawing mode
         drawState = 'polygon';
+    } else if (e.which == 49) {
+        document.getElementById("selWidth").selectedIndex = 0;
+    } else if (e.which == 50) {
+        document.getElementById("selWidth").selectedIndex = 1;
+    } else if (e.which == 51) {
+        document.getElementById("selWidth").selectedIndex = 2;
+    } else if (e.which == 52) {
+        document.getElementById("selWidth").selectedIndex = 3;
     }
+        
 });
