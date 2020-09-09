@@ -194,6 +194,7 @@ function saveImage() {
 // t - toggle mask
 // l - line drawing mode
 // p - polgon drawing mode
+// h - help (list keys in window)
 $(document).keypress(function (e) {
     console.log(e.which);
     if(e.which == 101 ) {
@@ -212,6 +213,9 @@ $(document).keypress(function (e) {
     } else if (e.which == 112) {
         //p - set polygon drawing mode
         drawState = 'polygon';
+    } else if (e.which == 104) {
+        //h - print the help
+        alert('Help\nUseful keys:\nd - delete mode\nt - toggle mask\nl - line draw mode\np - polygon draw mode');
     } else if (e.which == 49) {
         document.getElementById("selWidth").selectedIndex = 0;
     } else if (e.which == 50) {
