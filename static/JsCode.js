@@ -79,6 +79,7 @@ function InitThis() {
     });
     
     drawImage(); //Defined on template to get mask correct
+    drawPrevImage();
 }
 
 function imgCycleUp() {
@@ -211,6 +212,7 @@ function saveImage() {
 // Shortcuts
 // d - deleting mode (draw boxes with two clicks)
 // t - toggle mask
+// r - toggle previous tracks
 // l - line drawing mode
 // p - polgon drawing mode
 // u - cycle composite up
@@ -225,6 +227,9 @@ $(document).keypress(function (e) {
     } else if (e.which == 116 ) {
         //t - toggle mask visibility
         $('#myCanvas').toggle();
+    } else if (e.which == 114 ) {
+        //r - toggle previous mask
+        $('#prevCanvas').toggle();
     } else if (e.which == 117 ) {
         //u - cycle composite
         imgCycleUp();
@@ -242,7 +247,7 @@ $(document).keypress(function (e) {
         drawState = 'polygon';
     } else if (e.which == 104) {
         //h - print the help
-        alert('Help\nUseful keys:\nd - delete mode\nt - toggle mask\nl - line draw mode\np - polygon draw mode\nu/j - cycle composite up/down');
+        alert('Help\nUseful keys:\nd - delete mode\nt - toggle mask\nr - toggle previous mask\nl - line draw mode\np - polygon draw mode\nu/j - cycle composite up/down');
     } else if (e.which == 49) {
         document.getElementById("selWidth").selectedIndex = 0;
     } else if (e.which == 50) {

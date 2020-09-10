@@ -7,6 +7,7 @@ import json
 from util import imagedb
 from PIL import Image
 
+
 class DataIndex(object):
     '''Stores a list and the position in it'''
     def __init__(self, newlist=None, missing=-1):
@@ -20,8 +21,13 @@ class DataIndex(object):
         
     def next(self):
         try:
-            self.current_index += 1
-            return self.data[self.current_index]
+            return self.data[self.current_index+1]
+        except:
+            return self.missing
+
+    def prev_name(self):
+        try:
+            return self.data[self.current_index-1]
         except:
             return self.missing
 
@@ -31,6 +37,9 @@ class DataIndex(object):
 
     def visiting(self, visit_number):
         self.current_index = self.data.index(int(visit_number))
+
+    def update_loc(self, image_name):
+        self.current_index = self.data.index(image_name)
 
 
 class ExpInfo(object):
@@ -42,10 +51,13 @@ class ExpInfo(object):
             self.composites = composites
         else:
             self.composites = []
+        self.sequence = sequence
 
         if self.etype == 'mask':
             self.image_db = imagedb.ImageDatabase(app.root_path+'/static/'+self.folder+'images.db')
-            self.image_list = DataIndex([a[1] for a in self.image_db.dump()], 'None')
+            imlist = [a[1] for a in self.image_db.dump()]
+            imlist.sort()
+            self.image_list = DataIndex(imlist, 'None')
             self.item_list = DataIndex(missing=-1)
         else:
             raise NotImplementedError('Object detector not yet implmented')
@@ -67,18 +79,11 @@ class Expts(object):
         return [[exp, self.expts[exp].etype, *self.expts[exp].image_db.info()] for exp in self.expts.keys()]
 
 
+########################
+# Define the flask app #
+########################
+    
 app = Flask(__name__)
-
-tasic_cfg = Expts()
-tasic_cfg.add_expt('contrails',
-                   ExpInfo(
-                       folder='contrail_masks/',
-                       etype='mask'))
-tasic_cfg.add_expt('contrails_goes',
-                   ExpInfo(folder='contrail_mask_train/',
-                           composites=['CON'],
-                           etype='mask', sequence=True))
-
 
 @app.route('/submit_mask/<exp>/<image_name>', methods=['POST'])
 def submit_mask(exp, image_name):
@@ -123,6 +128,9 @@ def image(exp, image_name=None, res='hr'):
     '''Display an image'''
     if (not image_name) or (image_name == 'None'):
         return redirect(url_for('exp_info', exp=exp))
+
+    tasic_cfg.expts[exp].image_list.update_loc(image_name)
+    
     image_notes = tasic_cfg.expts[exp].image_db.check(image_name)['notes']
 
     if res == 'hr':
@@ -132,17 +140,32 @@ def image(exp, image_name=None, res='hr'):
         with Image.open('static/'+img_rgb) as img:
             width, height = img.size[0], img.size[1]
         scale = 1 # Image scaling, not used here
-        
-        return render_template(
-            'image.html',
-            img_rgb=img_rgb,
-            width=width, height=height,
-            exp=exp,
-            image_name=image_name,
-            mask_name=imagedb.get_maskname(img_rgb),
-            image_notes=image_notes, res=res,
-            composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg.expts[exp].composites],
-            next_image=tasic_cfg.expts[exp].image_list.next())
+
+    if tasic_cfg.expts[exp].sequence:
+        # Image is part of a sequence of images. Pass the previous mask to
+        # help with identification in the current image
+        try:
+            previous_image = '{folder}{image_name}'.format(
+                folder=tasic_cfg.expts[exp].folder,
+                image_name=tasic_cfg.expts[exp].image_list.prev_name())
+            previous_mask = imagedb.get_maskname(previous_image)
+        except:
+            previous_image = None
+            previous_mask = None
+    else:
+        previous_image = None
+        previous_mask = None
+
+    return render_template(
+        'image.html',
+        img_rgb=img_rgb,
+        width=width, height=height,
+        exp=exp, image_notes=image_notes, res=res,
+        image_name=image_name,
+        mask_name=imagedb.get_maskname(img_rgb),
+        prev_mask_name=previous_mask,
+        composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg.expts[exp].composites],
+        next_image=tasic_cfg.expts[exp].image_list.next())
 
 
 @app.route('/')
@@ -173,6 +196,16 @@ def unchkexp_info(exp):
     tasic_cfg.expts[exp].image_list.replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
 
+
+tasic_cfg = Expts()
+tasic_cfg.add_expt('contrails',
+                   ExpInfo(
+                       folder='contrail_masks/',
+                       etype='mask'))
+tasic_cfg.add_expt('contrails_goes',
+                   ExpInfo(folder='contrail_mask_train/',
+                           composites=['CON', 'BT'],
+                           etype='mask', sequence=True))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

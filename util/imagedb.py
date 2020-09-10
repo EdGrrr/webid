@@ -126,3 +126,8 @@ class ImageDatabase:
             info_array[:, 3][info_array[:, 3]>0].sum(),
             info_array[:, 4][info_array[:, 4]>0].sum(),
             info_array[:, 5][info_array[:, 5]>0].sum()/(100*len(info_array))]
+
+    def image_step(self, image_name, step):
+        images = self.list_images()
+        ind = images.index(image_name)
+        return images[ind+step]

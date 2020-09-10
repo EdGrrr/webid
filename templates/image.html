@@ -19,6 +19,9 @@
              z-index:21;
          }
         </style>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+        <script type="text/javascript" src={{ url_for('static', filename="JsCode.js") }}></script>
+
     </head>
     <body onload="InitThis();">
         <script>
@@ -30,9 +33,21 @@
                  cPush();
              });    
          };
-         </script>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
-        <script type="text/javascript" src={{ url_for('static', filename="JsCode.js") }}></script>
+
+         {% if prev_mask_name %}
+         function drawPrevImage() {
+             var image = new Image();
+             image.src = "{{ url_for('static', filename=prev_mask_name) }}";
+             $(image).load(function () {
+                 document.getElementById('prevCanvas').getContext("2d").drawImage(image, 0, 0, {{width}}, {{height}});
+             });
+             document.getElementById('prevCanvas').getContext("2d").filter = "hue-rotate(130deg)";
+         };
+         {% else %}
+         function drawPrevImage() {};             
+         {% endif %}
+
+        </script>
 
         <div id="satImg" class="img-comp-container">
             <div id='imgCont' class="img-comp-img">
@@ -43,7 +58,16 @@
                      data-img0={{ url_for('static', filename=img_rgb) }}
                      {% for comp in composites %}
                          data-img{{ loop.index }}={{ url_for('static', filename=comp) }}
-                     {% endfor %}>
+                     {% endfor %} >
+            </div>
+            <div id='imgPrev' class="img-comp-img">
+                {% if prev_mask_name %}
+                    <!-- <img id ='prevMask'
+                         src={{ url_for('static', filename=prev_mask_name) }}
+                         width="{{ width }}" height="{{ height }}"
+                         style="filter: hue-rotate(120deg)"> -->
+                    <canvas id="prevCanvas" width="{{ width }}" height="{{ height }}"></canvas>
+                {% endif %}
             </div>
             <canvas id="myCanvas" width="{{ width }}" height="{{ height }}"></canvas>
             <svg id="guideLayer" width="{{ width }}" height="{{ height }}"></svg>
