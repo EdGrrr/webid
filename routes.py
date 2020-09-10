@@ -136,4 +136,4 @@ def unchkexp_info(exp=exp):
     return render_template('exp.html', exp=exp, data=granules)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    app.run(debug=True, port=5000)
