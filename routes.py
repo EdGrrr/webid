@@ -35,7 +35,7 @@ class DataIndex(object):
 
 class ExpInfo(object):
     '''Stores info about an experiment'''
-    def __init__(self, folder, etype, composites=None):
+    def __init__(self, folder, etype, composites=None, sequence=False):
         self.folder = folder
         self.etype = etype
         if composites:
@@ -77,7 +77,7 @@ tasic_cfg.add_expt('contrails',
 tasic_cfg.add_expt('contrails_goes',
                    ExpInfo(folder='contrail_mask_train/',
                            composites=['CON'],
-                           etype='mask'))
+                           etype='mask', sequence=True))
 
 
 @app.route('/submit_mask/<exp>/<image_name>', methods=['POST'])
