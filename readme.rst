@@ -12,7 +12,7 @@ There are two method for marking out features:
 Thanks to Charles Harvey and Michael Richardson for their contributions.
 
 
-General usage
+General setup
 #############
 
 Create a conda environment using the environment.yml file. Alternatively, make sure you have the main requirements installed:
@@ -20,13 +20,10 @@ Create a conda environment using the environment.yml file. Alternatively, make s
 - numpy
 - pillow (PIL)
 
-Create some experiments (see below), then start the server (on localhost) by running 'make' in the project root directory. The webpage should then be at 'localhost:8000/index'.
+Create some experiments (see below), then start the server (on localhost) by running 'make' in the project root directory. The webpage should then be at 'localhost:5000/index'.
 
 For each experiment on the index page, there are two links. Clicking on the number of images will take you to a list of all available images. Clicking on the number in the 'checked' column will take you to a list of only the unchecked images. When going through the list of images, this should be the list of images used by the server.
 
-
-Mask identifier
-###############
 
 Setup
 *****
@@ -38,7 +35,13 @@ Note that this script can be run in the future to add new images to a database w
 ``cd static/contrail_masks``
 ``python ../../util/create_mask_imagedb.py *.v1.png``
 
-Add the experiment details to tasic_cfg in 'routes.py'. Note that you can have many different experiments in a single identifier setup. All that is required here is the location of the experiment folder and the name of the experiment.
+If the red and alpha channels in the mask don't match, create_mask_imagedb.py will fail. Using the ``-f`` flag can fix the masks, by copying mask information from the red channel to the alpha channel.
+
+Add the experiment details to tasic_cfg in 'routes.py'. Note that you can have many different experiments in a single identifier setup. The format of the experiment details is a dictionary with the following format
+
+``'contrails': {'folder': 'contrail_masks/', 'composites': ['CON'], 'type': 'mask'}``
+
+where the ``folder`` is the name of the containing folder (within static, can be a softlink), ``composites`` is a list of potential extra images to aid in the mask identification (e.g. true colour RGB, day microphysics) and type is either 'mask' or 'object'
 
 Workflow (mask-mode)
 ********************
