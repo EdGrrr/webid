@@ -144,12 +144,14 @@ def image(exp, image_name=None, res='hr'):
             composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg.expts[exp].composites],
             next_image=tasic_cfg.expts[exp].image_list.next())
 
+
 @app.route('/')
 @app.route('/index')
 def index():
     '''A starting page with list of all the experiments'''
     cfinfo = tasic_cfg.get_info()
     return render_template('index.html', data=cfinfo)
+
 
 @app.route('/exp/<exp>')
 def exp_info(exp):
@@ -160,6 +162,7 @@ def exp_info(exp):
     tasic_cfg.expts[exp].image_list.replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
 
+
 @app.route('/exp/<exp>-unchecked')
 def unchkexp_info(exp):
     '''Provide a single page with links to all the granules
@@ -169,6 +172,7 @@ def unchkexp_info(exp):
     granules = [g for g in granules if g[2] == 0]
     tasic_cfg.expts[exp].image_list.replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
