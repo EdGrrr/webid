@@ -196,10 +196,11 @@ function cRedo() {
 function saveImage() {
     var dataURL = document.getElementById('myCanvas').toDataURL();
     var image_name = $('#imageOptions').data("image");
+    var exp = $('#imageOptions').data("exp");
     console.log(dataURL);
     $.ajax({
         type: "POST",
-        url: "/submit_mask/"+image_name,
+        url: "/submit_mask/"+exp+"/"+image_name,
         data: {'img64': dataURL},
     }).done(function(o) {
         console.log('saved'); 

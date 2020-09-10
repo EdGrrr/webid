@@ -32,72 +32,102 @@ class DataIndex(object):
     def visiting(self, visit_number):
         self.current_index = self.data.index(int(visit_number))
 
-def get_info(tasic_cfg):
-    return [[a, tasic_cfg[a]['type'], *tasic_cfg[a]['image_db'].info()] for a in tasic_cfg.keys()]
 
-tasic_cfg = {'contrails': {'folder': 'contrail_masks/',
-                           'composites': [],
-                           'type': 'mask'},
-             'contrails_goes': {'folder': 'contrail_mask_train/',
-                                'composites': ['CON'],
-                                'type': 'mask'},}
+class ExpInfo(object):
+    '''Stores info about an experiment'''
+    def __init__(self, folder, etype, composites=None):
+        self.folder = folder
+        self.etype = etype
+        if composites:
+            self.composites = composites
+        else:
+            self.composites = []
+
+        if self.etype == 'mask':
+            self.image_db = imagedb.ImageDatabase(app.root_path+'/static/'+self.folder+'images.db')
+            self.image_list = DataIndex([a[1] for a in self.image_db.dump()], 'None')
+            self.item_list = DataIndex(missing=-1)
+        else:
+            raise NotImplementedError('Object detector not yet implmented')
+            # tasic_cfg[exp]['track_db'] = TrackDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'tracks.db')
+            # tasic_cfg[exp]['image_db'] = GranuleDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'granules.db')
+            # tasic_cfg[exp]['image_list'] = DataIndex([a[1] for a in tasic_cfg[exp]['gran_db'].dump()], 'None')
+            # tasic_cfg[exp]['tr_list'] = DataIndex(missing=-1)
+
+
+class Expts(object):
+    '''Stores information about all experiments'''
+    def __init__(self):
+        self.expts = {}
+
+    def add_expt(self, name, expt):
+        self.expts[name] = expt
+
+    def get_info(self):
+        return [[exp, self.expts[exp].etype, *self.expts[exp].image_db.info()] for exp in self.expts.keys()]
+
 
 app = Flask(__name__)
 
-for exp in tasic_cfg.keys():
-    if tasic_cfg[exp]['type'] == 'mask':
-        tasic_cfg[exp]['image_db'] = imagedb.ImageDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'images.db')
-        tasic_cfg[exp]['image_list'] = DataIndex([a[1] for a in tasic_cfg[exp]['image_db'].dump()], 'None')
-        tasic_cfg[exp]['item_list'] = DataIndex(missing=-1)
-    else:
-        tasic_cfg[exp]['track_db'] = TrackDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'tracks.db')
-        tasic_cfg[exp]['image_db'] = GranuleDatabase(app.root_path+'/static/'+tasic_cfg[exp]['folder']+'granules.db')
-        tasic_cfg[exp]['image_list'] = DataIndex([a[1] for a in tasic_cfg[exp]['gran_db'].dump()], 'None')
-        tasic_cfg[exp]['tr_list'] = DataIndex(missing=-1)
+tasic_cfg = Expts()
+tasic_cfg.add_expt('contrails',
+                   ExpInfo(
+                       folder='contrail_masks/',
+                       etype='mask'))
+tasic_cfg.add_expt('contrails_goes',
+                   ExpInfo(folder='contrail_mask_train/',
+                           composites=['CON'],
+                           etype='mask'))
 
-@app.route('/submit_mask/<image_name>', methods=['POST'])
-def submit_mask(image_name):
+
+@app.route('/submit_mask/<exp>/<image_name>', methods=['POST'])
+def submit_mask(exp, image_name):
     '''Save the mask to the server. Done without updating the database as a temporary thing'''
     if request.method == 'POST':
         data = request.form['img64']
         image_data = base64.b64decode(re.sub('^data:image/.+;base64,', '', data))
-        mask_name = imagedb.get_maskname('static/'+tasic_cfg[exp]['folder']+'/'+image_name)
+        mask_name = imagedb.get_maskname('static/'+tasic_cfg.expts[exp].folder+'/'+image_name)
         #Todo here - apply a threshold to the mask
-        #Sort out transparency and red not lining up
+        print(mask_name)
         with open(mask_name, 'wb') as f:
             f.write(image_data)
         return redirect(url_for('index'), code=303)
     else:
         print('Requires POST')
 
+
 @app.route('/exp/<exp>/image_complete/<image_name>', methods=['POST'])
 def image_complete(image_name=None, exp=None):
     '''Store the results from the image in the database'''
     image_data = json.loads(request.form['image_data'])
+    try:
+        pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name)
+    except:
+        pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name, fix=True)
     image_update = {
         'checked': image_data['checked'],
         'notes': image_data['notes'],
-        'percentage_mask': imagedb.mask_percentage('static/'+tasic_cfg[exp]['folder']+'/'+image_name)
+        'percentage_mask': pmask
     }
     print(image_name)
-    tasic_cfg[exp]['image_db'].update(image_name,
-                                      image_update)
-    new_data = tasic_cfg[exp]['image_db'].check(image_name)
+    tasic_cfg.expts[exp].image_db.update(image_name,
+                                         image_update)
+    new_data = tasic_cfg.expts[exp].image_db.check(image_name)
     print('Image: {} Tracks: {} Notes: {}'.format(
         image_name, new_data['percentage_mask'], new_data['notes']))
     return redirect(url_for('index'), code=303)
 
 
 @app.route('/exp/<exp>/image/<res>/<image_name>')
-def image(image_name=None, res='hr', exp=exp):
+def image(exp, image_name=None, res='hr'):
     '''Display an image'''
     if (not image_name) or (image_name == 'None'):
         return redirect(url_for('exp_info', exp=exp))
-    image_notes = tasic_cfg[exp]['image_db'].check(image_name)['notes']
+    image_notes = tasic_cfg.expts[exp].image_db.check(image_name)['notes']
 
     if res == 'hr':
         img_rgb = '{folder}{image_name}'.format(
-            folder=tasic_cfg[exp]['folder'],
+            folder=tasic_cfg.expts[exp].folder,
             image_name=image_name)
         with Image.open('static/'+img_rgb) as img:
             width, height = img.size[0], img.size[1]
@@ -111,33 +141,33 @@ def image(image_name=None, res='hr', exp=exp):
             image_name=image_name,
             mask_name=imagedb.get_maskname(img_rgb),
             image_notes=image_notes, res=res,
-            composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg[exp]['composites']],
-            next_image=tasic_cfg[exp]['image_list'].next())
+            composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg.expts[exp].composites],
+            next_image=tasic_cfg.expts[exp].image_list.next())
 
 @app.route('/')
 @app.route('/index')
 def index():
     '''A starting page with list of all the experiments'''
-    cfinfo = get_info(tasic_cfg)
+    cfinfo = tasic_cfg.get_info()
     return render_template('index.html', data=cfinfo)
 
 @app.route('/exp/<exp>')
-def exp_info(exp=exp):
+def exp_info(exp):
     '''Provide a single page with links to all the granules
     and track statistics for each'''
     print(exp)
-    granules = tasic_cfg[exp]['image_db'].dump()
-    tasic_cfg[exp]['image_list'].replace([a[1] for a in granules])
+    granules = tasic_cfg.expts[exp].image_db.dump()
+    tasic_cfg.expts[exp].image_list.replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
 
 @app.route('/exp/<exp>-unchecked')
-def unchkexp_info(exp=exp):
+def unchkexp_info(exp):
     '''Provide a single page with links to all the granules
     and track statistics for each'''
     print(exp)
-    granules = tasic_cfg[exp]['image_db'].dump()
+    granules = tasic_cfg.expts[exp].image_db.dump()
     granules = [g for g in granules if g[2] == 0]
-    tasic_cfg[exp]['image_list'].replace([a[1] for a in granules])
+    tasic_cfg.expts[exp].image_list.replace([a[1] for a in granules])
     return render_template('exp.html', exp=exp, data=granules)
 
 if __name__ == '__main__':

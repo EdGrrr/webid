@@ -25,12 +25,15 @@ def mask_validator(image_name):
         data = np.array(img)
         return mask_data_validator(data)
     
-def mask_percentage(image_name):
+def mask_percentage(image_name, fix=False):
     with Image.open(get_maskname(image_name)) as img:
         data = np.array(img)
         if mask_data_validator(data):
             return (100*(data[:, :, 0]>1).sum())/float(data.shape[0]*data.shape[1])
         else:
+            if fix:
+                mask_data_fix(image_name)
+                return mask_percentage(image_name)
             raise ValueError('Mask is not valid (either red or black transparent)')
 
 def mask_data_fix(image_name):
