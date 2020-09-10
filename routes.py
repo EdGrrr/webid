@@ -36,8 +36,11 @@ def get_info(tasic_cfg):
     return [[a, tasic_cfg[a]['type'], *tasic_cfg[a]['image_db'].info()] for a in tasic_cfg.keys()]
 
 tasic_cfg = {'contrails': {'folder': 'contrail_masks/',
-                           'composite': 'CON',
-                           'type': 'mask'},}
+                           'composites': [],
+                           'type': 'mask'},
+             'contrails_goes': {'folder': 'contrail_mask_train/',
+                                'composites': ['CON'],
+                                'type': 'mask'},}
 
 app = Flask(__name__)
 
@@ -100,14 +103,16 @@ def image(image_name=None, res='hr', exp=exp):
             width, height = img.size[0], img.size[1]
         scale = 1 # Image scaling, not used here
         
-        return render_template('image.html',
-                               img_rgb=img_rgb,
-                               width=width, height=height,
-                               exp=exp,
-                               image_name=image_name,
-                               mask_name=imagedb.get_maskname(img_rgb),
-                               image_notes=image_notes, res=res,
-                               next_image=tasic_cfg[exp]['image_list'].next())
+        return render_template(
+            'image.html',
+            img_rgb=img_rgb,
+            width=width, height=height,
+            exp=exp,
+            image_name=image_name,
+            mask_name=imagedb.get_maskname(img_rgb),
+            image_notes=image_notes, res=res,
+            composites=[imagedb.get_compositename(img_rgb, comp) for comp in tasic_cfg[exp]['composites']],
+            next_image=tasic_cfg[exp]['image_list'].next())
 
 @app.route('/')
 @app.route('/index')

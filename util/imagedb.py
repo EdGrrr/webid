@@ -3,12 +3,15 @@ from datetime import datetime, timedelta
 import numpy as np
 from PIL import Image
 
-def get_maskname(image_name):
+def get_compositename(image_name, composite):
     fname_parts = image_name.split('.')
     if len(fname_parts) == 2:
-        return '.'.join([fname_parts[:-1]]+['mask']+[fname_parts[-1]])
+        return '.'.join([fname_parts[:-1]]+[composite]+[fname_parts[-1]])
     else:
-        return '.'.join(fname_parts[:-1]+['mask']+[fname_parts[-1]])
+        return '.'.join(fname_parts[:-1]+[composite]+[fname_parts[-1]])
+
+def get_maskname(image_name):
+    return get_compositename(image_name, 'mask')
 
 def mask_data_validator(data):
     totals = (data>0).sum(axis=(0, 1))

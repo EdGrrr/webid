@@ -6,6 +6,7 @@ var eraseX1, eraseY1, eraseX2, eraseY2;
 var isErasing = false;
 var drawState = 'paint'; //states: paint, erase, line, polygon
 var lastState = 'paint';
+var currentComposite = 0;
 
 function InitThis() {
     ctx = document.getElementById('myCanvas').getContext("2d");
@@ -58,7 +59,6 @@ function InitThis() {
         }
     });  
 
-
     $('#imageCompleteBtn').click(function (e) {
         //console.log($(this).data("image"))
         saveImage();
@@ -79,6 +79,24 @@ function InitThis() {
     });
     
     drawImage(); //Defined on template to get mask correct
+}
+
+function imgCycleUp() {
+    if (currentComposite < $('#imgDMP').data('numberComposites')) {
+            currentComposite++;
+    } else {
+        currentComposite = 0;
+    };
+    document.getElementById('imgDMP').src = $('#imgDMP').data('img'+currentComposite);
+}
+
+function imgCycleDown() {
+    if (currentComposite >0) {
+            currentComposite--;
+    } else {
+        currentComposite = $('#imgDMP').data('numberComposites');
+    };
+    document.getElementById('imgDMP').src = $('#imgDMP').data('img'+currentComposite);
 }
 
 function erase() {
@@ -194,6 +212,8 @@ function saveImage() {
 // t - toggle mask
 // l - line drawing mode
 // p - polgon drawing mode
+// u - cycle composite up
+// j - cycle composite down
 // h - help (list keys in window)
 $(document).keypress(function (e) {
     console.log(e.which);
@@ -204,6 +224,12 @@ $(document).keypress(function (e) {
     } else if (e.which == 116 ) {
         //t - toggle mask visibility
         $('#myCanvas').toggle();
+    } else if (e.which == 117 ) {
+        //u - cycle composite
+        imgCycleUp();
+    } else if (e.which == 106 ) {
+        //u - cycle composite
+        imgCycleDown();
     } else if (e.which == 108) {
         //l - set line drawing mode
         drawState = 'line';
@@ -215,7 +241,7 @@ $(document).keypress(function (e) {
         drawState = 'polygon';
     } else if (e.which == 104) {
         //h - print the help
-        alert('Help\nUseful keys:\nd - delete mode\nt - toggle mask\nl - line draw mode\np - polygon draw mode');
+        alert('Help\nUseful keys:\nd - delete mode\nt - toggle mask\nl - line draw mode\np - polygon draw mode\nu/j - cycle composite up/down');
     } else if (e.which == 49) {
         document.getElementById("selWidth").selectedIndex = 0;
     } else if (e.which == 50) {

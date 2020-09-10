@@ -38,7 +38,12 @@
             <div id='imgCont' class="img-comp-img">
                 <img id='imgDMP'
                      src={{ url_for('static', filename=img_rgb) }}
-                     width="{{ width }}" height="{{ height }}">
+                         width="{{ width }}" height="{{ height }}"
+                     data-number-composites={{ composites|length }}
+                     data-img0={{ url_for('static', filename=img_rgb) }}
+                     {% for comp in composites %}
+                         data-img{{ loop.index }}={{ url_for('static', filename=comp) }}
+                     {% endfor %}>
             </div>
             <canvas id="myCanvas" width="{{ width }}" height="{{ height }}"></canvas>
             <svg id="guideLayer" width="{{ width }}" height="{{ height }}"></svg>
