@@ -36,12 +36,23 @@ def mask_percentage(image_name, fix=False):
                 return mask_percentage(image_name)
             raise ValueError('Mask is not valid (either red or black transparent)')
 
-def mask_data_fix(image_name):
-    '''If the alpha and red channels don't align, fix the alpha channels to match the red channel'''
+def mask_data_fix(image_name, fix_priority='both'):
+    '''If the alpha and red channels don't align
+    fix_priority='red' - fix the alpha channel to match the red channel
+    fix_priority='alpha' - fix the red channel to match the alpha channel
+    fix_priority='both' - mask where red and alpha agree'
+    '''
     with Image.open(get_maskname(image_name)) as img:
         data = np.array(img)
-    # Fix the alpha channel
-    data[:, :, -1] = data[:, :, 0]
+    if fix_priority=='red':
+        # Fix the alpha channel
+        data[:, :, -1] = data[:, :, 0]
+    elif fix_priority=='alpha':
+        data[:, :, 0] = data[:, :, -1]
+    elif fix_priority=='both':
+        nmask = np.logical_and(data[:, :, 0]>0, data[:, :, -1]>0)
+        data[:, :, 0] = 255*nmask
+        data[:, :, -1] = 255*nmask
     # Zero out other channels
     data[:, :, [1, 2]] = 0
     imgmask = Image.fromarray(data)
