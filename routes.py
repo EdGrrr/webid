@@ -21,14 +21,15 @@ class DataIndex(object):
         
     def next(self):
         try:
+            # This automatically fails if current_index is too big, unlike prev.
             return self.data[self.current_index+1]
         except:
             return self.missing
 
     def prev_name(self):
-        try:
+        if self.current_index>0:
             return self.data[self.current_index-1]
-        except:
+        else:
             return self.missing
 
     def replace(self, newlist):
@@ -105,10 +106,11 @@ def submit_mask(exp, image_name):
 def image_complete(image_name=None, exp=None):
     '''Store the results from the image in the database'''
     image_data = json.loads(request.form['image_data'])
-    try:
-        pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name)
-    except:
-        pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name, fix=True)
+    # try:
+    pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name)
+    # except:
+    #     imagedb.mask_data_fix('static/'+tasic_cfg.expts[exp].folder+'/'+image_name, fix_priority='both')
+    #     pmask = imagedb.mask_percentage('static/'+tasic_cfg.expts[exp].folder+'/'+image_name)
     image_update = {
         'checked': image_data['checked'],
         'notes': image_data['notes'],
