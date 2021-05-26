@@ -208,6 +208,10 @@ tasic_cfg.add_expt('contrails_goes',
                    ExpInfo(folder='contrail_mask_train/',
                            composites=['CON', 'BT'],
                            etype='mask', sequence=True))
+tasic_cfg.add_expt('contrails_goes2',
+                   ExpInfo(folder='contrail_mask_train2/',
+                           composites=['CON', 'BT'],
+                           etype='mask', sequence=False))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

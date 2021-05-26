@@ -125,7 +125,7 @@ function DrawLine(x, y) {
         console.log('Shift line');
         tempLine.setAttribute('x2', x)
         tempLine.setAttribute('y2', y)
-        templine.setAttribute("stroke-width", $('#selWidth').val());
+        templine.setAttribute("stroke-width", $('#selWidth').val()/2);
     } else {
         console.log('Create line');
         var tempLine = document.createElementNS('http://www.w3.org/2000/svg','line');
@@ -153,7 +153,7 @@ function Draw(x, y, isDown) {
             ctx.beginPath();
             ctx.imageSmoothingEnabled = false;
             ctx.strokeStyle = 'red';
-            ctx.lineWidth = $('#selWidth').val();
+            ctx.lineWidth = $('#selWidth').val()/2;
             ctx.lineJoin = "round";
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(x, y);
